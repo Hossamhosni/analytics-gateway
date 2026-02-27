@@ -8,8 +8,7 @@ export async function connectRedis(logger) {
         return redisClient;
     }
 
-    redisClient = new Redis({
-        url: config.redis.url,
+    redisClient = new Redis(config.redis.url, {
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
         retryStrategy: (times) => {
