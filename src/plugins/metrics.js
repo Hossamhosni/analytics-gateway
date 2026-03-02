@@ -55,20 +55,18 @@ export default fp(async (fastify, _opts) => {
         return register.metrics();
     });
 
-    fastify.addHook('onRequest', (request, reply, done) => {
+    fastify.addHook('onRequest', async (request) => {
         request.startTime = Date.now();
-        done();
     });
 
-    fastify.addHook('onResponse', (request, reply, done) => {
+    fastify.addHook('onResponse', async (request, reply) => {
         const duration = Date.now() - request.startTime;
         const labels = {
             method: request.method,
-            route: request.routeOptions.url,
+            route: request.routeOptions?.url ?? request.url,
             status_code: reply.statusCode,
         };
         httpRequestsTotal.inc(labels);
         httpRequestDurationMs.observe(labels, duration);
-        done();
     });
 });

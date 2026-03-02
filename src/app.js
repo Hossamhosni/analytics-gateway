@@ -6,6 +6,11 @@ import { config } from "./config.js";
 import { getRedisClient } from "./redis/client.js";
 import { EventBuffer } from "./buffer/eventBuffer.js";
 import { publishBatch } from "./kafka/producer.js";
+import requestIdPlugin from "./plugins/requestId.js";
+import metricsPlugin from "./plugins/metrics.js";
+import authPlugin from "./plugins/auth.js";
+import healthRoutes from "./routes/health.js";
+import { eventRoutes } from "./routes/events.js";
 
 export async function buildApp({buffer, logger } = {}) {
     const app = Fastify({
@@ -31,9 +36,9 @@ export async function buildApp({buffer, logger } = {}) {
         redis: getRedisClient(),
     });
 
-    await app.register(import('./plugins/requestId.js'));
-    await app.register(import('./plugins/auth.js'));
-    await app.register(import('./plugins/metrics.js'));
+    await app.register(requestIdPlugin);
+    await app.register(metricsPlugin);
+    await app.register(authPlugin);
 
     const eventBuffer = buffer ?? new EventBuffer();
     eventBuffer.on('flush', async (batch) => {
@@ -42,10 +47,10 @@ export async function buildApp({buffer, logger } = {}) {
     eventBuffer.on('backpressure', ({ utilization }) => {
         app.log.warn({ utilization }, 'Buffer backpressure');
     });
-    app.decorate('eventBuffer', eventBuffer); 
+    app.decorate('eventBuffer', eventBuffer);
 
-    await app.register(import('./routes/health.js'));
-    await app.register(import('./routes/events.js'), { buffer: eventBuffer });
+    await app.register(healthRoutes);
+    await app.register(eventRoutes, { buffer: eventBuffer });
 
     app.setErrorHandler((error, request, reply) => {
         const statusCode = error.statusCode ?? 500;

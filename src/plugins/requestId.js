@@ -7,8 +7,8 @@ export default fp(async (fastify, _opts) => {
         done();
     });
 
-    fastify.addHook('onSend', (request, reply, done) => {
+    fastify.addHook('onSend', async (request, reply, payload) => {
         reply.header('x-request-id', request.id);
-        done();
+        return payload;
     })
 });
