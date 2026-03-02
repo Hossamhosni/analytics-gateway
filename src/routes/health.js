@@ -20,11 +20,11 @@ export default async function healthRoutes(fastify, _opts) {
         });
     })
 
-    fastify.get('/health/live', { config : {skipAuth: true }}, async (request, reply) => {
+    fastify.get('/health/live', { config : { skipAuth: true }}, async (request, reply) => {
         return { status: 'live' };
     })
 
-    fastify.get('/health/ready', { config : {skipAuth: true }}, async (request, reply) => {
+    fastify.get('/health/ready', { config : { skipAuth: true }}, async (request, reply) => {
         const [redisHealthy, kafkaHealthy] = await Promise.all([
             checkRedisHealth(),
             checkKafkaHealth()
