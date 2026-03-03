@@ -7,7 +7,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
-    "test:load": "node tests/load/autocannon.js",
+    "test:load": "node tests/load/loadtest.js",
     "lint": "eslint src tests"
   },
   "jest": {
