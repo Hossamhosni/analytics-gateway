@@ -1,5 +1,12 @@
 import { jest } from '@jest/globals';
-import { EventBuffer } from '../../src/buffer/eventBuffer.js';
+
+jest.unstable_mockModule('../../src/config.js', () => ({
+    config: {
+        buffer: { maxSize: 500, flushIntervalMs: 200, backpressureThreshold: 0.8 },
+    },
+}));
+
+const { EventBuffer } = await import('../../src/buffer/eventBuffer.js');
 
 const makeBuffer = (opts = {}) =>
     new EventBuffer({ maxSize: 10, flushIntervalMs: 10000, backpressureThreshold: 0.8, ...opts });
@@ -14,16 +21,13 @@ describe('EventBuffer', () => {
 
         test('returns { accepted: false } when buffer is at max capacity', () => {
             const buf = makeBuffer({ maxSize: 2 });
-            // During the flush triggered by the 2nd add, refill the buffer.
-            // Inner auto-flush is suppressed by the #isFlushing guard, so the
-            // buffer stays full after the outer flush completes.
             buf.on('flush', () => {
                 buf.add({ type: 'fill-1' });
                 buf.add({ type: 'fill-2' });
             });
 
             buf.add({ type: 'a' });
-            buf.add({ type: 'b' }); // triggers flush → refills buffer inside handler
+            buf.add({ type: 'b' });
 
             expect(buf.add({ type: 'c' })).toEqual({ accepted: false });
             expect(buf.size).toBe(2);
@@ -34,7 +38,6 @@ describe('EventBuffer', () => {
             const onBackpressure = jest.fn();
             buf.on('backpressure', onBackpressure);
 
-            // Fill to exactly 50% (5/10)
             for (let i = 0; i < 5; i++) buf.add({ type: 'ev' });
 
             expect(onBackpressure).toHaveBeenCalled();
@@ -47,7 +50,7 @@ describe('EventBuffer', () => {
             const onBackpressure = jest.fn();
             buf.on('backpressure', onBackpressure);
 
-            buf.add({ type: 'ev' }); // 10% utilization
+            buf.add({ type: 'ev' });
             expect(onBackpressure).not.toHaveBeenCalled();
         });
     });

@@ -1,4 +1,12 @@
-import { enrichEvent, getIdempotencyKey } from '../../src/services/enrichment.js';
+import { jest } from '@jest/globals';
+
+jest.unstable_mockModule('../../src/config.js', () => ({
+    config: {
+        server: { version: '1.0.0' },
+    },
+}));
+
+const { enrichEvent, getIdempotencyKey } = await import('../../src/services/enrichment.js');
 
 describe('enrichEvent()', () => {
     const baseEvent = {
