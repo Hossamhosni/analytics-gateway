@@ -13,6 +13,9 @@
   "jest": {
     "testEnvironment": "node",
     "transform": {},
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
